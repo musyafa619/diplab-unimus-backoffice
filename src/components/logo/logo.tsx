@@ -171,6 +171,9 @@ export function Logo({
       aria-label="Logo"
       underline="none"
       className={mergeClasses([logoClasses.root, className])}
+      style={{
+        marginBottom: 20,
+      }}
       sx={[
         {
           width: 40,
