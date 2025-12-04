@@ -19,12 +19,12 @@ export const navData = [
   },
   {
     title: 'Pesanan',
-    path: '/order',
+    path: '/bookings',
     icon: icon('ic-user'),
   },
   {
     title: 'Alat',
-    path: '/tools',
-    icon: icon('ic-user'),
+    path: '/items',
+    icon: icon('ic-lock'),
   },
 ];

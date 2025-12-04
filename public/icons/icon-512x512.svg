@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#1976d2" rx="110"/>
+  
+  <!-- Icon: Briefcase/Dashboard -->
+  <g transform="translate(128, 128)">
+    <path d="M256,26 L256,26 Q280,26 280,50 L280,228 Q280,252 256,252 L76,252 Q52,252 52,228 L52,50 Q52,26 76,26 M76,26 L76,0 M256,26 L256,0 M76,0 L256,0" 
+          stroke="white" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="52" y="94" width="32" height="96" fill="white" rx="6"/>
+    <rect x="142" y="94" width="32" height="96" fill="white" rx="6"/>
+    <rect x="232" y="94" width="32" height="96" fill="white" rx="6"/>
+  </g>
+</svg>

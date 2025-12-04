@@ -117,6 +117,7 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
               display: 'flex',
               flex: '1 1 auto',
               flexDirection: 'column',
+              marginTop: 2,
             },
             ...(Array.isArray(sx) ? sx : [sx]),
           ]}

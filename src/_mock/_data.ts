@@ -14,9 +14,9 @@ import {
 // ----------------------------------------------------------------------
 
 export const _myAccount = {
-  displayName: 'Jaydon Frankie',
-  email: 'demo@minimals.cc',
-  photoURL: '/assets/images/avatar/avatar-25.webp',
+  displayName: 'Admin Diplab',
+  email: 'admin@diplab-unimus.com',
+  photoURL: '',
 };
 
 // ----------------------------------------------------------------------
@@ -208,3 +208,20 @@ export const _notifications = [
     isUnRead: false,
   },
 ];
+
+export const _items = [...Array(24)].map((_, index) => ({
+  id: _id(index),
+  name: _productNames(index),
+  quantity: Math.floor(Math.random() * 1000),
+  imageUrl: `https://res.cloudinary.com/diwyghl1k/image/upload/v1764832078/lvflmweikmojggbgwphf_e_background_removal_f_png_rwwq6x.png`,
+  updatedAt: _times(index),
+  createdAt: _times(index),
+}));
+
+export const _bookings = [...Array(24)].map((_, index) => ({
+  id: _id(index),
+  name: _fullName(index),
+  email: 'user@email.com',
+  quantity: String(Math.floor(Math.random() * 10) + 1),
+  status: index % 4 ? 'Berlangsung' : 'Menunggu',
+}));
