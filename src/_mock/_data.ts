@@ -219,7 +219,7 @@ export const _items = [...Array(24)].map((_, index) => ({
 }));
 
 export const _bookings = [...Array(24)].map((_, index) => ({
-  id: _id(index),
+  id: _id(index).slice(0, 8).toUpperCase(),
   name: _fullName(index),
   email: 'user@email.com',
   quantity: String(Math.floor(Math.random() * 10) + 1),

@@ -18,7 +18,7 @@ export default defineConfig({
         name: 'Diplab Unimus Backoffice',
         short_name: 'Diplab Backoffice',
         description: 'Diplab Unimus Backoffice Management System',
-        theme_color: '#1976d2',
+        theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
