@@ -15,16 +15,26 @@ export const navData = [
   {
     title: 'Dashboard',
     path: '/',
-    icon: icon('ic-analytics'),
+    icon: icon('ic-dashboard'),
   },
   {
-    title: 'Pesanan',
+    title: 'Peminjaman',
     path: '/bookings',
-    icon: icon('ic-user'),
+    icon: icon('ic-bookings'),
   },
   {
     title: 'Alat',
     path: '/items',
-    icon: icon('ic-lock'),
+    icon: icon('ic-tools'),
+  },
+  {
+    title: 'Mahasiswa',
+    path: '/students',
+    icon: icon('ic-students'),
+  },
+  {
+    title: 'Jurusan',
+    path: '/majors',
+    icon: icon('ic-majors'),
   },
 ];

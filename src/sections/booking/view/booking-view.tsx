@@ -51,7 +51,7 @@ export function BookingView() {
         }}
       >
         <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Pesanan
+          Peminjaman
         </Typography>
       </Box>
 

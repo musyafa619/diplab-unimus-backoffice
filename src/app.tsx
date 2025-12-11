@@ -2,7 +2,7 @@ import 'src/global.css';
 
 import { useEffect } from 'react';
 
-import { usePathname } from 'src/routes/hooks';
+import { usePathname, AuthProvider } from 'src/routes/hooks';
 
 import { ThemeProvider } from 'src/theme/theme-provider';
 
@@ -13,7 +13,11 @@ type AppProps = {
 export default function App({ children }: AppProps) {
   useScrollToTop();
 
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider>
+      <AuthProvider>{children}</AuthProvider>
+    </ThemeProvider>
+  );
 }
 
 function useScrollToTop() {

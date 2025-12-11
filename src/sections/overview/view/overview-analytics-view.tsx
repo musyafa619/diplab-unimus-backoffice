@@ -53,7 +53,7 @@ export function OverviewAnalyticsView() {
         </Grid>
 
         <Grid size={24}>
-          <AnalyticsTasks title="Pesanan Terbaru" list={_tasks} />
+          <AnalyticsTasks title="Peminjaman Terbaru" list={_tasks} />
         </Grid>
       </Grid>
     </DashboardContent>

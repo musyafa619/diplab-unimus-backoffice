@@ -71,7 +71,7 @@ export function AccountPopover({ sx, ...other }: AccountPopoverProps) {
 
         <Box sx={{ p: 1 }}>
           <Button
-            onClick={() => router.push('/sign-in')}
+            onClick={() => router.push('/login')}
             fullWidth
             color="error"
             size="medium"

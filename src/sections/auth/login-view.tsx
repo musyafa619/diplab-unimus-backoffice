@@ -1,28 +1,43 @@
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 
-import { useRouter } from 'src/routes/hooks';
+import { useAuth, useRouter } from 'src/routes/hooks';
+
+import * as AuthService from 'src/api/services/auth';
 
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export function SignInView() {
+export function LoginView() {
   const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const { fetchMe } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = useCallback(() => {
-    router.push('/');
-  }, [router]);
+  const handleLogin = useCallback(async () => {
+    setLoading(true);
+    try {
+      await AuthService.login({ username, password });
+      await fetchMe();
+      router.replace('/');
+    } catch (err) {
+      // TODO: show error toast
+
+      console.error('Login failed', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [username, password, fetchMe, router]);
 
   const renderForm = (
     <Box
@@ -34,24 +49,22 @@ export function SignInView() {
     >
       <TextField
         fullWidth
-        name="email"
-        label="Email address"
-        defaultValue="hello@gmail.com"
+        name="username"
+        label="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         sx={{ mb: 3 }}
         slotProps={{
           inputLabel: { shrink: true },
         }}
       />
 
-      <Link variant="body2" color="inherit" sx={{ mb: 1.5 }}>
-        Forgot password?
-      </Link>
-
       <TextField
         fullWidth
         name="password"
         label="Password"
-        defaultValue="@demo1234"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
         type={showPassword ? 'text' : 'password'}
         slotProps={{
           inputLabel: { shrink: true },
@@ -65,7 +78,7 @@ export function SignInView() {
             ),
           },
         }}
-        sx={{ mb: 3 }}
+        sx={{ mb: 4 }}
       />
 
       <Button
@@ -74,9 +87,10 @@ export function SignInView() {
         type="submit"
         color="inherit"
         variant="contained"
-        onClick={handleSignIn}
+        onClick={handleLogin}
+        disabled={loading}
       >
-        Sign in
+        {loading ? 'Login in...' : 'Login'}
       </Button>
     </Box>
   );
@@ -92,45 +106,9 @@ export function SignInView() {
           mb: 5,
         }}
       >
-        <Typography variant="h5">Sign in</Typography>
-        <Typography
-          variant="body2"
-          sx={{
-            color: 'text.secondary',
-          }}
-        >
-          Don’t have an account?
-          <Link variant="subtitle2" sx={{ ml: 0.5 }}>
-            Get started
-          </Link>
-        </Typography>
+        <Typography variant="h5">Login Admin</Typography>
       </Box>
       {renderForm}
-      <Divider sx={{ my: 3, '&::before, &::after': { borderTopStyle: 'dashed' } }}>
-        <Typography
-          variant="overline"
-          sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
-        >
-          OR
-        </Typography>
-      </Divider>
-      <Box
-        sx={{
-          gap: 1,
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:google" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:github" />
-        </IconButton>
-        <IconButton color="inherit">
-          <Iconify width={22} icon="socials:twitter" />
-        </IconButton>
-      </Box>
     </>
   );
 }
