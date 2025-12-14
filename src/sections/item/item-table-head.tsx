@@ -9,14 +9,20 @@ import { visuallyHidden } from './utils';
 // ----------------------------------------------------------------------
 
 type ItemTableHeadProps = {
-  orderBy: string;
+  orderBy: 'asc' | 'desc';
   rowCount: number;
-  order: 'asc' | 'desc';
+  sortBy: string;
   onSort: (id: string) => void;
   headLabel: Record<string, any>[];
 };
 
-export function ItemTableHead({ order, onSort, orderBy, rowCount, headLabel }: ItemTableHeadProps) {
+export function ItemTableHead({
+  sortBy,
+  onSort,
+  orderBy,
+  rowCount,
+  headLabel,
+}: ItemTableHeadProps) {
   return (
     <TableHead>
       <TableRow>
@@ -24,19 +30,18 @@ export function ItemTableHead({ order, onSort, orderBy, rowCount, headLabel }: I
           <TableCell
             key={headCell.id}
             align={headCell.align || 'left'}
-            sortDirection={orderBy === headCell.id ? order : false}
+            sortDirection={sortBy === headCell.id ? orderBy : false}
             sx={{ width: headCell.width, minWidth: headCell.minWidth }}
           >
             <TableSortLabel
-              hideSortIcon
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
+              active={sortBy === headCell.id}
+              direction={sortBy === headCell.id ? orderBy : 'asc'}
               onClick={() => onSort(headCell.id)}
             >
               {headCell.label}
-              {orderBy === headCell.id ? (
+              {sortBy === headCell.id ? (
                 <Box sx={{ ...visuallyHidden }}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                  {orderBy === 'desc' ? 'sorted descending' : 'sorted ascending'}
                 </Box>
               ) : null}
             </TableSortLabel>

@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react';
+import type { ItemListResponse } from 'src/types/Item';
+
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,33 +11,51 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { _items, _users } from 'src/_mock';
+import { _users } from 'src/_mock';
+import { getItems } from 'src/api/services/items';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
+import { emptyRows } from '../utils';
 import { TableNoData } from '../table-no-data';
 import { ItemTableRow } from '../item-table-row';
 import { ItemTableHead } from '../item-table-head';
+import CreateItemDialog from '../item-form-dialog';
 import { TableEmptyRows } from '../table-empty-rows';
 import { ItemTableToolbar } from '../item-table-toolbar';
-import { emptyRows, applyFilter, getComparator } from '../utils';
-
-import type { UserProps } from '../item-table-row';
 
 export function ItemView() {
   const table = useTable();
 
-  const [filterName, setFilterName] = useState('');
-
-  const dataFiltered: UserProps[] = applyFilter({
-    inputData: _items,
-    comparator: getComparator(table.order, table.orderBy),
-    filterName,
+  const [itemList, setItemList] = useState<ItemListResponse>({
+    data: [],
+    meta: {
+      page: 1,
+      limit: 5,
+      total: 0,
+      totalPages: 0,
+    },
   });
 
-  const notFound = !dataFiltered.length && !!filterName;
+  const fetchItems = useCallback(async () => {
+    const res: ItemListResponse = await getItems({
+      page: table.page,
+      limit: table.limit,
+      search: table.searchKeyword || undefined,
+      orderBy: table.orderBy,
+      sortBy: table.sortBy,
+    });
+
+    setItemList(res);
+  }, [table.page, table.limit, table.searchKeyword, table.orderBy, table.sortBy]);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
 
   return (
     <DashboardContent>
@@ -53,16 +73,22 @@ export function ItemView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={() => setDialogOpen(true)}
         >
           Tambah Alat
         </Button>
+
+        <CreateItemDialog
+          open={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onCreated={(created) => console.log('created', created)}
+        />
       </Box>
 
       <Card>
         <ItemTableToolbar
-          filterName={filterName}
-          onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setFilterName(event.target.value);
+          onSearchKeyword={(keyword: string) => {
+            table.onSearchKeyword(keyword);
             table.onResetPage();
           }}
         />
@@ -71,9 +97,9 @@ export function ItemView() {
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
               <ItemTableHead
-                order={table.order}
+                sortBy={table.sortBy}
                 orderBy={table.orderBy}
-                rowCount={_users.length}
+                rowCount={itemList?.data?.length}
                 onSort={table.onSort}
                 headLabel={[
                   { id: 'name', label: 'Nama' },
@@ -83,21 +109,16 @@ export function ItemView() {
                 ]}
               />
               <TableBody>
-                {dataFiltered
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row) => (
-                    <ItemTableRow key={row.id} row={row} />
-                  ))}
+                {itemList?.data
+                  ?.slice(table.page * table.limit, table.page * table.limit + table.limit)
+                  .map((row) => <ItemTableRow key={row?.id} row={row} />)}
 
                 <TableEmptyRows
                   height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                  emptyRows={emptyRows(table.page, table.limit, _users.length)}
                 />
 
-                {notFound && <TableNoData searchQuery={filterName} />}
+                {itemList?.data?.length < 1 && <TableNoData searchQuery={table.searchKeyword} />}
               </TableBody>
             </Table>
           </TableContainer>
@@ -107,10 +128,10 @@ export function ItemView() {
           component="div"
           page={table.page}
           count={_users.length}
-          rowsPerPage={table.rowsPerPage}
+          rowsPerPage={table.limit}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
+          onRowsPerPageChange={table.onChangeLimit}
         />
       </Card>
     </DashboardContent>
@@ -121,17 +142,18 @@ export function ItemView() {
 
 export function useTable() {
   const [page, setPage] = useState(0);
-  const [orderBy, setOrderBy] = useState('name');
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [orderBy, setOrderBy] = useState<'asc' | 'desc'>('asc');
+  const [limit, setLimit] = useState(5);
+  const [sortBy, setSortBy] = useState('name');
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   const onSort = useCallback(
     (id: string) => {
-      const isAsc = orderBy === id && order === 'asc';
-      setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
+      const isAsc = sortBy === id && orderBy === 'asc';
+      setOrderBy(isAsc ? 'desc' : 'asc');
+      setSortBy(id);
     },
-    [order, orderBy]
+    [sortBy, orderBy]
   );
 
   const onResetPage = useCallback(() => {
@@ -142,22 +164,28 @@ export function useTable() {
     setPage(newPage);
   }, []);
 
-  const onChangeRowsPerPage = useCallback(
+  const onChangeLimit = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
+      setLimit(parseInt(event.target.value, 10));
       onResetPage();
     },
     [onResetPage]
   );
 
+  const onSearchKeyword = (keyword: string) => {
+    setSearchKeyword(keyword);
+  };
+
   return {
     page,
-    order,
+    sortBy,
     onSort,
     orderBy,
-    rowsPerPage,
+    limit,
     onResetPage,
     onChangePage,
-    onChangeRowsPerPage,
+    onChangeLimit,
+    searchKeyword,
+    onSearchKeyword,
   };
 }

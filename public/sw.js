@@ -16,7 +16,7 @@ const PRECACHE_FILES = [
   '/manifest.json',
 ];
 
-self.addEventListener('install', (event: ExtendableEvent) => {
+self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
   event.waitUntil(
     caches.open(PRECACHE_NAME).then((cache) => {
@@ -26,7 +26,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
   );
 });
 
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
   console.log('[SW] Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -46,7 +46,7 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
   );
 });
 
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener('fetch', (event) => {
   const { request } = event;
   const { method, url } = request;
 

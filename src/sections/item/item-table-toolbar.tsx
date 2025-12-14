@@ -1,3 +1,6 @@
+import { useState } from 'react';
+
+import { Button } from '@mui/material';
 import Toolbar from '@mui/material/Toolbar';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -7,29 +10,25 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 type ItemTableToolbarProps = {
-  filterName: string;
-  onFilterName: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearchKeyword: (keyword: string) => void;
 };
 
-export function ItemTableToolbar({ filterName, onFilterName }: ItemTableToolbarProps) {
+export function ItemTableToolbar({ onSearchKeyword }: ItemTableToolbarProps) {
+  const [keyword, setKeyword] = useState('');
   return (
     <Toolbar
       sx={{
         height: 96,
+        gap: 2,
         display: 'flex',
-        justifyContent: 'space-between',
         p: (theme) => theme.spacing(0, 1, 0, 3),
       }}
     >
       <OutlinedInput
-        inputProps={{
-          style: {
-            padding: 12,
-          },
-        }}
+        size="small"
         fullWidth
-        value={filterName}
-        onChange={onFilterName}
+        value={keyword}
+        onChange={(value) => setKeyword(value.target.value)}
         placeholder="Cari alat..."
         startAdornment={
           <InputAdornment position="start">
@@ -38,6 +37,9 @@ export function ItemTableToolbar({ filterName, onFilterName }: ItemTableToolbarP
         }
         sx={{ maxWidth: 320 }}
       />
+      <Button onClick={() => onSearchKeyword(keyword)} variant="contained" color="inherit">
+        Cari
+      </Button>
     </Toolbar>
   );
 }
