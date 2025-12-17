@@ -1,3 +1,6 @@
+import type { Item } from 'src/types/Item';
+
+import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -10,21 +13,13 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { Iconify } from 'src/components/iconify';
 
-// ----------------------------------------------------------------------
-
-export type UserProps = {
-  id: string;
-  name: string;
-  quantity: number;
-  imageUrl: string;
-  updatedAt: string;
-};
-
 type ItemTableRowProps = {
-  row: UserProps;
+  row: Item;
+  onEditRow: (id: string) => void;
+  onDeleteRow: (id: string) => void;
 };
 
-export function ItemTableRow({ row }: ItemTableRowProps) {
+export function ItemTableRow({ row, onEditRow, onDeleteRow }: ItemTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -34,6 +29,16 @@ export function ItemTableRow({ row }: ItemTableRowProps) {
   const handleClosePopover = useCallback(() => {
     setOpenPopover(null);
   }, []);
+
+  const handleEditRow = useCallback(() => {
+    onEditRow(row.id);
+    handleClosePopover();
+  }, [onEditRow, row.id, handleClosePopover]);
+
+  const handleDeleteRow = useCallback(() => {
+    onDeleteRow(row.id);
+    handleClosePopover();
+  }, [onDeleteRow, row.id, handleClosePopover]);
 
   return (
     <>
@@ -58,7 +63,7 @@ export function ItemTableRow({ row }: ItemTableRowProps) {
 
         <TableCell>{row.quantity}</TableCell>
 
-        <TableCell>{row.updatedAt}</TableCell>
+        <TableCell>{dayjs(row.updatedAt).format('DD/MM/YYYY')}</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>
@@ -90,12 +95,12 @@ export function ItemTableRow({ row }: ItemTableRowProps) {
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
+          <MenuItem onClick={handleEditRow}>
             <Iconify icon="solar:pen-bold" />
             Edit
           </MenuItem>
 
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem onClick={handleDeleteRow} sx={{ color: 'error.main' }}>
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete
           </MenuItem>

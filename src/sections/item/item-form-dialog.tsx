@@ -17,16 +17,14 @@ import { Iconify } from 'src/components/iconify';
 type Props = {
   open: boolean;
   onClose: () => void;
-  onCreated?: (item: any) => void;
-  // initialData for edit mode (optional)
   initialData?: {
     id?: string;
     name?: string;
+    description?: string;
     quantity?: number | string;
     imageUrl?: string | null;
   } | null;
-  // called after create or update
-  onSaved?: (item: any) => void;
+  onFinish?: () => void;
 };
 
 const VisuallyHiddenInput = styled('input')({
@@ -40,68 +38,43 @@ const VisuallyHiddenInput = styled('input')({
   padding: 0,
 });
 
-export function ItemFormDialog({ open, onClose, onCreated, initialData = null, onSaved }: Props) {
+export function ItemFormDialog({ open, onClose, onFinish, initialData = null }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
   const { register, handleSubmit, reset, formState, setValue } = useForm<{
     name: string;
+    description: string;
     quantity: string;
-    image?: FileList | null;
+    imageUrl: string;
   }>({
     defaultValues: {
       name: '',
-      quantity: '1',
+      description: '',
+      quantity: '',
+      imageUrl: '',
     },
   });
 
-  // populate form when editing
-  useEffect(() => {
-    if (initialData) {
-      reset({ name: initialData.name ?? '', quantity: String(initialData.quantity ?? '1') });
-      setPreview(initialData.imageUrl ?? null);
-    } else {
-      reset({ name: '', quantity: '1' });
-      setPreview(null);
-      setFile(null);
-    }
-  }, [initialData, reset]);
-
-  // create/revoke object URL for selected file
-  useEffect(() => {
-    if (!file) return undefined;
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
-  const onSubmit = async (values: { name: string; quantity: string }) => {
+  const onSubmit = async (values: { name: string; quantity: string; description: string }) => {
     setLoading(true);
     try {
       const fd = new FormData();
       fd.append('name', values.name);
-      fd.append('quantity', values.quantity || '1');
+      fd.append('quantity', values.quantity);
+      fd.append('description', values.description);
       if (file) fd.append('image', file);
 
-      let saved;
       if (initialData?.id) {
-        saved = await ItemsService.updateItem(initialData.id, fd);
+        await ItemsService.updateItem(initialData.id, fd);
       } else {
-        saved = await ItemsService.createItem(fd);
+        await ItemsService.createItem(fd);
       }
 
       // compatible callback for older uses
-      onCreated?.(saved);
-      onSaved?.(saved);
+      onFinish?.();
       onClose();
-
-      // reset form only in create mode
-      if (!initialData) {
-        reset({ name: '', quantity: '1' });
-        setFile(null);
-        setPreview(null);
-      }
     } catch (err) {
       console.error('save item failed', err);
     } finally {
@@ -109,14 +82,41 @@ export function ItemFormDialog({ open, onClose, onCreated, initialData = null, o
     }
   };
 
+  // populate form when editing
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name ?? '',
+        description: initialData.description ?? '',
+        quantity: String(initialData.quantity ?? ''),
+        imageUrl: initialData.imageUrl ?? '',
+      });
+      setPreview(initialData.imageUrl ?? null);
+    } else {
+      reset({ name: '', description: '', quantity: '', imageUrl: '' });
+      setPreview(null);
+      setFile(null);
+    }
+  }, [initialData, reset, open]);
+
+  // create/revoke object URL for selected file
+  useEffect(() => {
+    if (!file) return undefined;
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    setValue('imageUrl', url, { shouldValidate: true });
+    return () => URL.revokeObjectURL(url);
+  }, [file, setValue]);
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>Tambah Alat</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" sx={{ overflow: 'hidden' }}>
+      <DialogTitle>{initialData ? 'Edit' : 'Tambah'} Alat</DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               label="Nama Alat"
+              size="small"
               fullWidth
               {...register('name', { required: 'Nama alat wajib diisi' })}
               error={!!formState.errors.name}
@@ -126,6 +126,7 @@ export function ItemFormDialog({ open, onClose, onCreated, initialData = null, o
             <TextField
               label="Jumlah"
               type="number"
+              size="small"
               fullWidth
               {...register('quantity', {
                 required: 'Jumlah wajib diisi',
@@ -134,11 +135,21 @@ export function ItemFormDialog({ open, onClose, onCreated, initialData = null, o
               error={!!formState.errors.quantity}
               helperText={formState.errors.quantity?.message?.toString()}
             />
+            <TextField
+              label="Deskripsi Alat"
+              size="small"
+              multiline
+              rows={4}
+              fullWidth
+              {...register('description', { required: 'Deskripsi alat wajib diisi' })}
+              error={!!formState.errors.name}
+              helperText={formState.errors.name?.message?.toString()}
+            />
             <div
               style={{
                 height: 200,
                 width: '100%',
-                border: `1px dashed ${formState.errors.image ? 'red' : '#ccc'}`,
+                border: `1px dashed ${formState.errors.imageUrl ? 'red' : '#ccc'}`,
                 padding: 8,
                 borderRadius: 12,
                 position: 'relative',
@@ -176,20 +187,19 @@ export function ItemFormDialog({ open, onClose, onCreated, initialData = null, o
                 <VisuallyHiddenInput
                   type="file"
                   accept="image/*"
-                  {...register('image', {
+                  {...register('imageUrl', {
                     validate: (v) => (file || initialData?.imageUrl ? true : 'Gambar wajib diisi'),
                   })}
                   onChange={(e) => {
                     const newFile = e.target.files?.[0] ?? null;
                     setFile(newFile);
-                    setValue('image', e.target.files ?? null, { shouldValidate: true });
                   }}
                 />
               </label>
             </div>
-            {formState.errors.image && (
+            {formState.errors.imageUrl && (
               <div style={{ color: '#d32f2f', fontSize: 12, marginTop: 6 }}>
-                {String(formState.errors.image.message)}
+                {String(formState.errors.imageUrl.message)}
               </div>
             )}
           </Stack>
@@ -208,5 +218,3 @@ export function ItemFormDialog({ open, onClose, onCreated, initialData = null, o
     </Dialog>
   );
 }
-
-export default ItemFormDialog;

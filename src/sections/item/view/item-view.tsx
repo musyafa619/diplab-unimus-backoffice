@@ -1,33 +1,37 @@
 import type { ItemListResponse } from 'src/types/Item';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
+import { CircularProgress } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
 import { _users } from 'src/_mock';
-import { getItems } from 'src/api/services/items';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { getItems, deleteItem } from 'src/api/services/items';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+import { useConfirm } from 'src/components/confirmation-dialog/confirm-context';
 
 import { emptyRows } from '../utils';
 import { TableNoData } from '../table-no-data';
 import { ItemTableRow } from '../item-table-row';
 import { ItemTableHead } from '../item-table-head';
-import CreateItemDialog from '../item-form-dialog';
+import { ItemFormDialog } from '../item-form-dialog';
 import { TableEmptyRows } from '../table-empty-rows';
 import { ItemTableToolbar } from '../item-table-toolbar';
 
 export function ItemView() {
   const table = useTable();
+  const [isLoading, setIsLoading] = useState(false);
+  const confirm = useConfirm();
 
   const [itemList, setItemList] = useState<ItemListResponse>({
     data: [],
@@ -39,7 +43,17 @@ export function ItemView() {
     },
   });
 
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
+
+  const selectedItem = useMemo(() => {
+    if (!selectedItemId) {
+      return null;
+    }
+    return itemList.data.find((item) => item.id === selectedItemId);
+  }, [selectedItemId, itemList.data]);
+
   const fetchItems = useCallback(async () => {
+    setIsLoading(true);
     const res: ItemListResponse = await getItems({
       page: table.page,
       limit: table.limit,
@@ -49,13 +63,32 @@ export function ItemView() {
     });
 
     setItemList(res);
+    setIsLoading(false);
   }, [table.page, table.limit, table.searchKeyword, table.orderBy, table.sortBy]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const handleDeleteItem = async (id: string) => {
+    const confirmDelete = await confirm({
+      title: 'Hapus item?',
+      description: 'Item ini akan dihapus permanen. Lanjutkan?',
+    });
+
+    if (confirmDelete) {
+      await deleteItem(id);
+      await fetchItems();
+    }
+  };
+
   useEffect(() => {
     fetchItems();
-  }, [fetchItems]);
+  }, [fetchItems, table.page, table.limit, table.searchKeyword, table.orderBy, table.sortBy]);
+
+  useEffect(() => {
+    if (!dialogOpen) {
+      setSelectedItemId(undefined);
+    }
+  }, [dialogOpen]);
 
   return (
     <DashboardContent>
@@ -71,18 +104,12 @@ export function ItemView() {
         </Typography>
         <Button
           variant="contained"
-          color="inherit"
+          color="primary"
           startIcon={<Iconify icon="mingcute:add-line" />}
           onClick={() => setDialogOpen(true)}
         >
           Tambah Alat
         </Button>
-
-        <CreateItemDialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          onCreated={(created) => console.log('created', created)}
-        />
       </Box>
 
       <Card>
@@ -94,46 +121,75 @@ export function ItemView() {
         />
 
         <Scrollbar>
-          <TableContainer sx={{ overflow: 'unset' }}>
-            <Table sx={{ minWidth: 800 }}>
-              <ItemTableHead
-                sortBy={table.sortBy}
-                orderBy={table.orderBy}
-                rowCount={itemList?.data?.length}
-                onSort={table.onSort}
-                headLabel={[
-                  { id: 'name', label: 'Nama' },
-                  { id: 'quantity', label: 'Jumlah' },
-                  { id: 'updatedAt', label: 'Terakhir Diupdate' },
-                  { id: '' },
-                ]}
-              />
-              <TableBody>
-                {itemList?.data
-                  ?.slice(table.page * table.limit, table.page * table.limit + table.limit)
-                  .map((row) => <ItemTableRow key={row?.id} row={row} />)}
-
-                <TableEmptyRows
-                  height={68}
-                  emptyRows={emptyRows(table.page, table.limit, _users.length)}
+          {isLoading ? (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                width: '100%',
+                minHeight: 300,
+                alignItems: 'center',
+              }}
+            >
+              <CircularProgress />
+            </div>
+          ) : (
+            <TableContainer sx={{ overflow: 'unset' }}>
+              <Table sx={{ minWidth: 800 }}>
+                <ItemTableHead
+                  sortBy={table.sortBy}
+                  orderBy={table.orderBy}
+                  rowCount={itemList?.data?.length}
+                  onSort={table.onSort}
+                  headLabel={[
+                    { id: 'name', label: 'Nama' },
+                    { id: 'quantity', label: 'Jumlah' },
+                    { id: 'updatedAt', label: 'Terakhir Diupdate' },
+                    { id: '' },
+                  ]}
                 />
 
-                {itemList?.data?.length < 1 && <TableNoData searchQuery={table.searchKeyword} />}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                <TableBody style={{ width: '100%' }}>
+                  {itemList?.data.map((row) => (
+                    <ItemTableRow
+                      key={row?.id}
+                      row={row}
+                      onEditRow={(id) => {
+                        setSelectedItemId(id);
+                        setDialogOpen(true);
+                      }}
+                      onDeleteRow={handleDeleteItem}
+                    />
+                  ))}
+
+                  <TableEmptyRows
+                    height={68}
+                    emptyRows={emptyRows(table.page, table.limit, _users.length)}
+                  />
+
+                  {itemList?.data?.length < 1 && <TableNoData searchQuery={table.searchKeyword} />}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Scrollbar>
 
         <TablePagination
           component="div"
-          page={table.page}
-          count={_users.length}
+          page={table.page - 1}
+          count={itemList?.meta?.total || 0}
           rowsPerPage={table.limit}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
           onRowsPerPageChange={table.onChangeLimit}
         />
       </Card>
+      <ItemFormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onFinish={() => fetchItems()}
+        initialData={selectedItem}
+      />
     </DashboardContent>
   );
 }
@@ -141,7 +197,7 @@ export function ItemView() {
 // ----------------------------------------------------------------------
 
 export function useTable() {
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<'asc' | 'desc'>('asc');
   const [limit, setLimit] = useState(5);
   const [sortBy, setSortBy] = useState('name');
@@ -157,10 +213,11 @@ export function useTable() {
   );
 
   const onResetPage = useCallback(() => {
-    setPage(0);
+    setPage(1);
   }, []);
 
   const onChangePage = useCallback((event: unknown, newPage: number) => {
+    console.log('zzz', newPage);
     setPage(newPage);
   }, []);
 
@@ -175,6 +232,8 @@ export function useTable() {
   const onSearchKeyword = (keyword: string) => {
     setSearchKeyword(keyword);
   };
+
+  console.log(page);
 
   return {
     page,

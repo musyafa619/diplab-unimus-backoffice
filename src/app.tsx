@@ -6,6 +6,8 @@ import { usePathname, AuthProvider } from 'src/routes/hooks';
 
 import { ThemeProvider } from 'src/theme/theme-provider';
 
+import { ConfirmProvider } from 'src/components/confirmation-dialog/confirm-context';
+
 type AppProps = {
   children: React.ReactNode;
 };
@@ -15,7 +17,9 @@ export default function App({ children }: AppProps) {
 
   return (
     <ThemeProvider>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <ConfirmProvider>{children}</ConfirmProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
