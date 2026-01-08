@@ -131,7 +131,12 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
             }}
           >
             {data.map((item) => {
-              const isActived = item.path === pathname;
+              const isActived =
+                item.path !== '/'
+                  ? pathname.includes(item.path)
+                  : pathname === '/' && item.path === '/'
+                    ? true
+                    : false;
 
               return (
                 <ListItem disableGutters disablePadding key={item.title}>

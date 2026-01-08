@@ -12,11 +12,15 @@ import { RequireAuth } from 'src/routes/hooks';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
-export const DashboardPage = lazy(() => import('src/pages/dashboard'));
-export const BookingPage = lazy(() => import('src/pages/bookings'));
-export const ItemPage = lazy(() => import('src/pages/items'));
-export const LoginPage = lazy(() => import('src/pages/login'));
-export const Page404 = lazy(() => import('src/pages/page-not-found'));
+export const DashboardPage = lazy(() => import('src/pages/dashboard/index'));
+export const BookingPage = lazy(() => import('src/pages/bookings/index'));
+export const BookingDetailPage = lazy(() => import('src/pages/booking-detail/index'));
+export const ItemPage = lazy(() => import('src/pages/items/index'));
+export const MajorPage = lazy(() => import('src/pages/majors/index'));
+export const StudentPage = lazy(() => import('src/pages/students/index'));
+
+export const LoginPage = lazy(() => import('src/pages/login/login'));
+export const Page404 = lazy(() => import('src/pages/not-found'));
 
 const renderFallback = () => (
   <Box
@@ -52,7 +56,10 @@ export const routesSection: RouteObject[] = [
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'bookings', element: <BookingPage /> },
+      { path: 'bookings/:id', element: <BookingDetailPage /> },
       { path: 'items', element: <ItemPage /> },
+      { path: 'students', element: <StudentPage /> },
+      { path: 'majors', element: <MajorPage /> },
     ],
   },
   {

@@ -4,9 +4,13 @@ export type Item = {
   id: string;
   name: string;
   imageUrl: string;
-  quantity: number;
+  stock: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ItemWithQuantity = Omit<Item, 'stock'> & {
+  quantity: number;
 };
 
 export type ItemListResponse = {

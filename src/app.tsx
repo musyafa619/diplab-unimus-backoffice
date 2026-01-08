@@ -1,6 +1,7 @@
 import 'src/global.css';
 
 import { useEffect } from 'react';
+import { SnackbarProvider } from 'notistack';
 
 import { usePathname, AuthProvider } from 'src/routes/hooks';
 
@@ -17,9 +18,11 @@ export default function App({ children }: AppProps) {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <ConfirmProvider>{children}</ConfirmProvider>
-      </AuthProvider>
+      <SnackbarProvider maxSnack={3}>
+        <AuthProvider>
+          <ConfirmProvider>{children}</ConfirmProvider>
+        </AuthProvider>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 }
