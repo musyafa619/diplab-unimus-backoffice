@@ -1,5 +1,5 @@
 import type { Booking } from 'src/types/booking';
-import type { ItemWithQuantity } from 'src/types/item';
+import type { ItemWithQuantity } from 'src/types/item-type';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';

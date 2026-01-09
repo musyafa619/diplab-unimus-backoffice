@@ -1,4 +1,4 @@
-import type { Item } from 'src/types/item';
+import type { Item } from 'src/types/item-type';
 
 import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';

@@ -1,4 +1,4 @@
-import type { ItemListResponse } from 'src/types/item';
+import type { ItemListResponse } from 'src/types/item-type';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 

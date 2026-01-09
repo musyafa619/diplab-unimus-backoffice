@@ -1,5 +1,5 @@
 import type { Meta } from './common';
-import type { ItemWithQuantity } from './item';
+import type { ItemWithQuantity } from './item-type';
 
 export type Booking = {
   id: string;
