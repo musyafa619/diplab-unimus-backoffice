@@ -171,7 +171,7 @@ export function useTable() {
   }, []);
 
   const onChangePage = useCallback((event: unknown, newPage: number) => {
-    setPage(newPage);
+    setPage(newPage + 1);
   }, []);
 
   const onChangeLimit = useCallback(

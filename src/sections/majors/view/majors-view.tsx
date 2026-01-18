@@ -208,8 +208,7 @@ export function useTable() {
   }, []);
 
   const onChangePage = useCallback((event: unknown, newPage: number) => {
-    console.log('zzz', newPage);
-    setPage(newPage);
+    setPage(newPage + 1);
   }, []);
 
   const onChangeLimit = useCallback(
